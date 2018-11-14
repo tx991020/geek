@@ -30,13 +30,3 @@ secret = "qwe"
     max_idle_conn = 30
     max_open_conn = 50
 
-[sentry]
-    dsn = "https://dd6790ce5bfe4b02a281aeed2bd27218:d999fcd0b8f244ad9b5bb53ebe0020f2@sentry.pipacoding.com/6"
-
-[rabbitmq]
-    conn_str = "amqp://guest:guest@10.200.11.62:5672/"
-
-# 路由分组：外部访问，内部访问。
-[router_group]
-     app_path_group = "logic/v2"
-     internal_path_group = "logic/v2/internal"

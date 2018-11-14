@@ -1,4 +1,4 @@
-# Create a Gin+Gorm+Redis Restful API  application
+# Create a Gin+Gorm+Redigo Restful API  application
 
 
 ```go get github.com/tx991020/geek```

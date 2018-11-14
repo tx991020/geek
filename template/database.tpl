@@ -2,7 +2,7 @@ package {package}
 
 import (
 	"log"
-	"myutils/logs"
+	"github.com/tx991020/utils/logs"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 )

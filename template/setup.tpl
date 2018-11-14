@@ -79,7 +79,7 @@ func ServerInit() {
 
 	redis.Setup(viper.GetString("redis.server"), viper.GetString("redis.password"), viper.GetInt("redis.database"))
 
-
+    r :=gin.Default()
 	ginpprof.Wrap(r)
 	r.Use(gin.Recovery())
 

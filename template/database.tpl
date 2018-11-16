@@ -31,3 +31,15 @@ func DB(t string) *gorm.DB {
 	return db
 
 }
+
+func TransactionCommitErr(tx *gorm.DB) {
+	if err := tx.Commit().Error; err != nil {
+		logs.Error("Transaction Err: %s", err.Error())
+	}
+}
+
+func TransactionRollbackErr(tx *gorm.DB) {
+	if err := tx.Rollback().Error; err != nil {
+		logs.Error("Transaction Err: %s", err.Error())
+	}
+}

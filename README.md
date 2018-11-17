@@ -7,11 +7,10 @@
  ```
  geek new go-api "root:123456@tcp(127.0.0.1:3306)" dbname
 ```
-<<<<<<< HEAD
-=======
+
 
 ### 三级缓存
 1 memory cache
 2 redis dao cache
 3 redis url cache
->>>>>>> change read me
+

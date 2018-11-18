@@ -25,41 +25,7 @@ func ConfigInit() {
 
 }
 
-//func InitLogs() {
-//	switch config.Cfg().Log.Output {
-//	case "file":
-//		var logDir = config.Cfg().Log.LogDir
-//		if logDir != "" {
-//			if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
-//				logs.Critical("create logs folder fails: %s", err.Error())
-//				panic(err.Error())
-//			}
-//		}
-//		var fileCfg = fmt.Sprintf(`{"filename":"%s","level":7,"maxlines":0,"maxsize":0,"daily":true,"maxdays":10}`, logDir+"/logic.log")
-//		logs.SetLogger(logs.AdapterFile, fileCfg)
-//	default:
-//		logs.SetLogger(logs.AdapterConsole)
-//	}
-//
-//	// set logger to gin
-//	gin.DefaultWriter = logs.GetBeeLogger()
-//	gin.DefaultErrorWriter = logs.ErrWriter{}
-//
-//	var mode = config.Cfg().Mode
-//	if mode == "dev" {
-//		logs.SetLevel(logs.LevelDebug)
-//		gin.SetMode(gin.DebugMode)
-//	} else {
-//		var sentryDsn = config.Cfg().Sentry.Dsn
-//		if sentryDsn != "" {
-//			var serviceName = config.Cfg().ServiceName
-//			logs.SetupSentry(sentryDsn, serviceName)
-//		}
-//
-//		logs.SetLevel(logs.LevelInformational)
-//		gin.SetMode(gin.ReleaseMode)
-//	}
-//}
+
 
 func ServerInit() {
 

@@ -20,6 +20,7 @@ import (
 var config Configuration
 
 type Configuration struct {
+	AppKind      string `json:"app_kind"`
 	AppPath      string `json:"go_path"`
 	TemplatePath string `json:"template_path"`
 	DbAddress    string `json:"db_address"`
@@ -167,9 +168,23 @@ func generateCacheInit(cacheParam string) {
 
 //生成handler Init 列表
 func generateHandlerInit(handlerParam string) {
-	b, err := ioutil.ReadFile(config.TemplatePath + "/template/handler.tpl")
-	if err != nil {
-		fmt.Println(err)
+	var err error
+	var b []byte
+	if config.AppKind == "gin" {
+		b, err = ioutil.ReadFile(config.TemplatePath + "/template/handlerInit.tpl")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+	} else {
+
+		b, err = ioutil.ReadFile(config.TemplatePath + "/template/iris_handlerInit.tpl")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 	}
 
 	b0 := strings.Replace(string(b), "{namelist}", handlerParam, -1)
@@ -198,9 +213,23 @@ func generateCacheCRUD(tableName string) {
 
 //生成handler
 func generateHandler(tableName string) {
-	b, err := ioutil.ReadFile(config.TemplatePath + "/template/handler_template.tpl")
-	if err != nil {
-		fmt.Println(err)
+	var err error
+	var b []byte
+	if config.AppKind == "gin" {
+		b, err = ioutil.ReadFile(config.TemplatePath + "/template/handler_template.tpl")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+	} else {
+
+		b, err = ioutil.ReadFile(config.TemplatePath + "/template/iris_handler_template.tpl")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 	}
 
 	ftn := formatName(tableName)
@@ -256,11 +285,27 @@ func generateRedis() {
 
 //生成setup
 func generateSetUp() {
+	var err error
+	var b []byte
+	if config.AppKind == "gin" {
+		b, err = ioutil.ReadFile(config.TemplatePath + "/template/setup.tpl")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
-	b, err := ioutil.ReadFile(config.TemplatePath + "/template/setup.tpl")
-	if err != nil {
-		log.Fatal(err)
+	} else {
+
+		b, err = ioutil.ReadFile(config.TemplatePath + "/template/iris_setup.tpl")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 	}
+
+
+
 	b0 := strings.Replace(string(b), "{package}", "setup", -1)
 	b1 := strings.Replace(string(b0), "{AppName}", config.AppName, -1)
 	ioutil.WriteFile(config.AppPath+config.AppName+"/"+"setup"+"/setup.go", []byte(b1), os.FileMode(0644))
@@ -403,14 +448,16 @@ func goType(col *ColumnSchema) (string, string, error) {
 
 func Create(c *cli.Context) error {
 	fmt.Println(111, c.Args())
-	if c.NArg() != 3 {
+	if c.NArg() != 4 {
 		err := errors.New(`参数格式不对,例如 gin new go-api "root:123456@tcp(127.0.0.1:3306)" dbname `)
 		log.Fatal(err)
 		return err
 	}
-	AppName := c.Args()[0]
-	DbAddress := c.Args()[1]
-	DbName := c.Args()[2]
+	AppKind := c.Args()[0]
+	fmt.Println(1111111, AppKind == "iris")
+	AppName := c.Args()[1]
+	DbAddress := c.Args()[2]
+	DbName := c.Args()[3]
 	fmt.Println(AppName, DbAddress, DbName)
 	var cmd *exec.Cmd
 
@@ -423,7 +470,7 @@ func Create(c *cli.Context) error {
 	}
 	AppPath := strings.TrimSpace(string(path)) + "/src/"
 	TemplatePath := strings.TrimSpace(string(path)) + "/src/github.com/tx991020/geek/"
-	config = Configuration{AppPath, TemplatePath, DbAddress, DbName, "dao", "cache", AppName, "json"}
+	config = Configuration{AppKind, AppPath, TemplatePath, DbAddress, DbName, "dao", "cache", AppName, "json"}
 
 	tables := getSchema()
 
@@ -490,8 +537,8 @@ func main() {
 
 	var createCommand = cli.Command{
 		Name:      "new",
-		Usage:     `geek new go-api "root:123456@tcp(127.0.0.1:3306)" dbname`,
-		ArgsUsage: "generate a gin api application 第一个参数:项目名 第二个参数: 数据库连接 第三个参数 数据库名",
+		Usage:     `geek new iris go-api "root:123456@tcp(127.0.0.1:3306)" dbname`,
+		ArgsUsage: "generate a gin/iris api application 第一个参数:项目Kind:iris或gin(default gin),第二个参数:项目名 第三个参数: 数据库连接 第四个参数 数据库名",
 
 		Action: Create,
 	}

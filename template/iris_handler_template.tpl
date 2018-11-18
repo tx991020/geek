@@ -2,10 +2,11 @@ package {package}
 
 import (
 	"reflect"
-	"net/http"
+
 	"encoding/json"
 	"github.com/kataras/iris"
 	"github.com/tx991020/utils/restful"
+	"github.com/tx991020/utils"
 	"{AppName}/dao"
 	"{AppName}/service"
 	"{AppName}/cache"
@@ -14,32 +15,32 @@ import (
 
 func {Table}Init(r iris.Party) {
 	rt := r.Party(`/{table}s`)
-	rt.POST(
+	rt.Post(
 		``,
-		restful.GRequestBodyObject(reflect.TypeOf(dao.{Table}{}), "json"),
+		restful.GRequestBodyObject(reflect.TypeOf(dao.{Table}{})),
 		Create{Table},
 	)
 
-	rt.PUT(
+	rt.Put(
 		`/:{table}Id`,
 		restful.GPathRequireInt("{table}Id"),
 		restful.GRequestBodyMap,
 		Update{Table},
 	)
-	rt.GET(
+	rt.Get(
 		`/:{table}Id`,
 		restful.GPathRequireInt("{table}Id"),
 		Get{Table},
 	)
 
-	r.GET(
+	r.Get(
 		`/{table}sByFilter`,
 		restful.GQueryOptionalStringDefault("filter", "{}"),
 		restful.GQueryOptionalIntDefault("current", 1),
 		restful.GQueryOptionalIntDefault("pageSize", 10),
 		Get{Table}ByFilter,
 	)
-	rt.DELETE(
+	rt.Delete(
 		`/:{table}Id`,
 		restful.GPathRequireInt("{table}Id"),
 		Delete{Table},
@@ -57,7 +58,7 @@ func Create{Table}(c iris.Context) {
 
 	service.InvalidCache{Table}ByFilter()
 
-	c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":item)})
+	c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":item})
 
 
 }
@@ -69,14 +70,14 @@ func Create{Table}(c iris.Context) {
 func Update{Table}(c iris.Context) {
 	m := c.Values().Get("requestBody").(map[string]interface{})
 	delete(m, "id")
-	r, _, _, err := cache.Update{Table}(c.MustGet("{table}Id").(int64), utils.MCamelToSnake(m))
+	r, _, _, err := cache.Update{Table}(c.Values().Get("{table}Id").(int64), utils.MCamelToSnake(m))
 	if err !=nil{
 
-    		c.JSON(iris.Map{"Code": e.ERROR_DATABASE, "Msg":err.Error(),"Data":nil)})
+    		c.JSON(iris.Map{"Code": e.ERROR_DATABASE, "Msg":err.Error(),"Data":nil})
     		return
     	}
 
-    	c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":r)})
+    	c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":r})
 
 }
 // @{Table}  json
@@ -86,7 +87,7 @@ func Update{Table}(c iris.Context) {
 func Get{Table}(c iris.Context) {
 	r := cache.Get{Table}(c.Values().Get("{table}Id").(int64))
 
-	c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":r)})
+	c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":r})
 
 }
 
@@ -98,7 +99,7 @@ func Delete{Table}(c iris.Context) {
 	cache.Delete{Table}(c.Values().Get("{table}Id").(int64))
 	service.InvalidCache{Table}ByFilter()
 
-	c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":nil)})
+	c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":nil})
 }
 
 // @{Table}  json
@@ -115,13 +116,13 @@ func Get{Table}ByFilter(c iris.Context) {
     err := json.Unmarshal([]byte(jsonstring), &filter)
     if err != nil {
 
-        c.JSON(iris.Map{"Code": e.INVALID_PARAMS, Msg:err.Error(),"Data":nil)})
+        c.JSON(iris.Map{"Code": e.INVALID_PARAMS, "Msg":err.Error(),"Data":nil})
         return
     }
 
-    rels, cnt := service.FetchGroupByFilter(utils.MCamelToSnake(filter), current, pagesize)
+    rels, cnt := service.Fetch{Table}ByFilter(utils.MCamelToSnake(filter), current, pagesize)
 
     c.Header("X-total-count", utils.Itoa(int64(cnt)))
 
-    c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":rels)})
+    c.JSON(iris.Map{"Code": e.SUCCESS, "Msg":"","Data":rels})
 }

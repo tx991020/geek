@@ -112,7 +112,7 @@ func Get{Table}ByFilter(c *gin.Context) {
         return
     }
 
-    rels, cnt := service.FetchGroupByFilter(utils.MCamelToSnake(filter), current, pagesize)
+    rels, cnt := service.Fetch{Table}ByFilter(utils.MCamelToSnake(filter), current, pagesize)
 
     c.Header("X-total-count", utils.Itoa(int64(cnt)))
     c.JSON(http.StatusOK, &utils.Response{Code:e.SUCCESS,Msg:"",Data:rels})

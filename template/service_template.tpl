@@ -27,7 +27,7 @@ func Fetch{Table}ByFilter(filter map[string]interface{}, current, pagesize int64
 		filter,
 		"",
 		0,
-		"sequence",
+		"",
 		int(pagesize),
 	)
 	ret := make([]*{Table}WithDetail, 0)

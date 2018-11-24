@@ -25,8 +25,6 @@ type Configuration struct {
 	TemplatePath string `json:"template_path"`
 	DbAddress    string `json:"db_address"`
 	DbName       string `json:"db_name"`
-	DaoPkgName   string `json:"dao_pkg_name"`
-	CachePkgName string `json:"cache_pkg_name"`
 	AppName      string `json:"app_name"`
 	// TagLabel produces tags commonly used to match db field names with Go struct members
 	TagLabel string `json:"tag_label"`
@@ -46,11 +44,10 @@ type ColumnSchema struct {
 
 //生成目录
 func initDirs() {
-	daoPath := strings.ToLower(config.DaoPkgName)
-	cachePath := strings.ToLower(config.CachePkgName)
+
 	os.MkdirAll(config.AppPath+config.AppName+"/", 0755)
-	os.MkdirAll(config.AppPath+config.AppName+"/"+daoPath, 0755)
-	os.MkdirAll(config.AppPath+config.AppName+"/"+cachePath, 0755)
+	os.MkdirAll(config.AppPath+config.AppName+"/dao", 0755)
+	os.MkdirAll(config.AppPath+config.AppName+"/cache", 0755)
 	os.MkdirAll(config.AppPath+config.AppName+"/"+"handler", 0755)
 	os.MkdirAll(config.AppPath+config.AppName+"/"+"service", 0755)
 	os.MkdirAll(config.AppPath+config.AppName+"/"+"setup", 0755)
@@ -95,8 +92,8 @@ func writeStructs(tables map[string][]*ColumnSchema) error {
 }
 
 //反射表结构
-func getSchema() map[string][]*ColumnSchema {
-	conn, err := sql.Open("mysql", config.DbAddress+"/information_schema")
+func getSchema(dbaddr, dbname string) map[string][]*ColumnSchema {
+	conn, err := sql.Open("mysql", dbaddr+"/information_schema")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -104,7 +101,7 @@ func getSchema() map[string][]*ColumnSchema {
 	q := "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE, " +
 		"CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, COLUMN_TYPE, " +
 		"COLUMN_KEY FROM COLUMNS WHERE TABLE_SCHEMA = ? ORDER BY TABLE_NAME, ORDINAL_POSITION"
-	rows, err := conn.Query(q, config.DbName)
+	rows, err := conn.Query(q, dbname)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -161,9 +158,9 @@ func generateCacheInit(cacheParam string) {
 	}
 
 	b0 := strings.Replace(string(b), "{namelist}", cacheParam, -1)
-	b1 := strings.Replace(string(b0), "{package}", strings.ToLower(config.CachePkgName), -1)
-	os.Mkdir(config.AppPath+config.AppName+"/"+config.CachePkgName+"/", os.FileMode(0755))
-	ioutil.WriteFile(config.AppPath+config.AppName+"/"+config.CachePkgName+"/cache.go", []byte(b1), os.ModeAppend|os.FileMode(0664))
+	b1 := strings.Replace(string(b0), "{package}", "cache", -1)
+	os.Mkdir(config.AppPath+config.AppName+"/cache/", os.FileMode(0755))
+	ioutil.WriteFile(config.AppPath+config.AppName+"/cache/cache.go", []byte(b1), os.ModeAppend|os.FileMode(0664))
 }
 
 //生成handler Init 列表
@@ -188,8 +185,8 @@ func generateHandlerInit(handlerParam string) {
 	}
 
 	b0 := strings.Replace(string(b), "{namelist}", handlerParam, -1)
-	b1 := strings.Replace(string(b0), "{package}", strings.ToLower(config.CachePkgName), -1)
-	os.Mkdir(config.AppPath+config.AppName+"/"+config.CachePkgName+"/", os.FileMode(0755))
+	b1 := strings.Replace(string(b0), "{package}", "cache", -1)
+	os.Mkdir(config.AppPath+config.AppName+"/cache/", os.FileMode(0755))
 	ioutil.WriteFile(config.AppPath+config.AppName+"/"+"handler"+"/handler.go", []byte(b1), os.ModeAppend|os.FileMode(0664))
 }
 
@@ -203,12 +200,12 @@ func generateCacheCRUD(tableName string) {
 	ftn := formatName(tableName)
 	ctn := getVarPrefix(ftn)
 
-	b0 := strings.Replace(string(b), "{package}", strings.ToLower(config.CachePkgName), -1)
+	b0 := strings.Replace(string(b), "{package}", "cache", -1)
 	b1 := strings.Replace(b0, "{table}", ctn, -1)
 	b2 := strings.Replace(b1, "{Table}", ftn, -1)
 	b3 := strings.Replace(b2, "{AppName}", config.AppName, -1)
-	os.Mkdir(config.AppPath+config.AppName+"/"+config.CachePkgName+"/", os.FileMode(0755))
-	ioutil.WriteFile(config.AppPath+config.AppName+"/"+config.CachePkgName+"/"+tableName+".go", []byte(b3), os.ModeAppend|os.FileMode(0664))
+	os.Mkdir(config.AppPath+config.AppName+"/cache/", os.FileMode(0755))
+	ioutil.WriteFile(config.AppPath+config.AppName+"/cache/"+tableName+".go", []byte(b3), os.ModeAppend|os.FileMode(0664))
 }
 
 //生成handler
@@ -268,8 +265,8 @@ func generateDatabase() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	b0 := strings.Replace(string(b), "{package}", strings.ToLower(config.DaoPkgName), -1)
-	ioutil.WriteFile(config.AppPath+config.AppName+"/"+"dao"+"/database.go", []byte(b0), os.FileMode(0644))
+	b0 := strings.Replace(string(b), "{package}", "dao", -1)
+	ioutil.WriteFile(config.AppPath+config.AppName+"/dao/database.go", []byte(b0), os.FileMode(0644))
 }
 
 //生成redis
@@ -280,7 +277,7 @@ func generateRedis() {
 		log.Fatal(err)
 	}
 	b0 := strings.Replace(string(b), "{package}", "redis", -1)
-	ioutil.WriteFile(config.AppPath+config.AppName+"/"+"redis"+"/redis.go", []byte(b0), os.FileMode(0644))
+	ioutil.WriteFile(config.AppPath+config.AppName+"/redis/redis.go", []byte(b0), os.FileMode(0644))
 }
 
 //生成setup
@@ -304,14 +301,12 @@ func generateSetUp() {
 
 	}
 
-
-
 	b0 := strings.Replace(string(b), "{package}", "setup", -1)
 	b1 := strings.Replace(string(b0), "{AppName}", config.AppName, -1)
-	ioutil.WriteFile(config.AppPath+config.AppName+"/"+"setup"+"/setup.go", []byte(b1), os.FileMode(0644))
+	ioutil.WriteFile(config.AppPath+config.AppName+"/setup/setup.go", []byte(b1), os.FileMode(0644))
 }
 
-//生成config.toml
+//生成errcode
 func generateErrorCode() {
 
 	b, err := ioutil.ReadFile(config.TemplatePath + "/template/e.tpl")
@@ -397,12 +392,12 @@ func generateModel(tableName string, columns []*ColumnSchema) {
 	}
 	bb := strings.Replace(string(b), "{model}", out.String(), -1)
 
-	b0 := strings.Replace(bb, "{package}", strings.ToLower(config.DaoPkgName), -1)
+	b0 := strings.Replace(bb, "{package}", "dao", -1)
 	b1 := strings.Replace(b0, "{table}", ctn, -1)
 	b2 := strings.Replace(b1, "{Table}", ftn, -1)
 	b3 := strings.Replace(b2, "{snake}", tableName, -1)
-	os.Mkdir(config.AppPath+config.AppName+"/"+config.DaoPkgName+"/", os.FileMode(0755))
-	ioutil.WriteFile(config.AppPath+config.AppName+"/"+config.DaoPkgName+"/"+tableName+".go", []byte(b3), os.ModeAppend|os.FileMode(0664))
+	os.Mkdir(config.AppPath+config.AppName+"/dao/", os.FileMode(0755))
+	ioutil.WriteFile(config.AppPath+config.AppName+"/dao/"+tableName+".go", []byte(b3), os.ModeAppend|os.FileMode(0664))
 }
 
 //数据库字段类型转go类型
@@ -461,6 +456,7 @@ func Create(c *cli.Context) error {
 	fmt.Println(AppName, DbAddress, DbName)
 	var cmd *exec.Cmd
 
+	//获取本机goenv
 	cmd = exec.Command("/bin/sh", "-c", `go env | grep GOPATH | awk -F    '"' '{print $2}'`)
 	path, err := cmd.Output()
 	if err != nil {
@@ -470,9 +466,9 @@ func Create(c *cli.Context) error {
 	}
 	AppPath := strings.TrimSpace(string(path)) + "/src/"
 	TemplatePath := strings.TrimSpace(string(path)) + "/src/github.com/tx991020/geek/"
-	config = Configuration{AppKind, AppPath, TemplatePath, DbAddress, DbName, "dao", "cache", AppName, "json"}
+	config = Configuration{AppKind, AppPath, TemplatePath, DbAddress, DbName, AppName, "json"}
 
-	tables := getSchema()
+	tables := getSchema(config.DbAddress, config.DbName)
 
 	//生成目录
 	initDirs()
@@ -487,8 +483,8 @@ func Create(c *cli.Context) error {
 	//结构体
 	err1 := writeStructs(tables)
 	if err1 != nil {
-		log.Fatal(err)
-		return errors.New(err.Error())
+		log.Fatal(err1)
+		return errors.New(err1.Error())
 	}
 
 	//cmd = exec.Command( "/bin/sh", "-c","swag init")
@@ -504,33 +500,33 @@ func Create(c *cli.Context) error {
 
 }
 
+//适用于新增单表 dao,service,handler, table_name 要用数据库里表名 大小写完全一致
+func GenerateSingleTable(table_name string) error {
+
+	tables := getSchema(config.DbAddress, config.DbName)
+	fmt.Println(tables)
+
+	columns := tables[table_name]
+	//按表生成结构体
+	generateModel(table_name, columns)
+	//生成dao CRUD
+	generateCacheCRUD(table_name)
+	//生成Handler
+	generateHandler(table_name)
+	//生成Service
+	generateService(table_name)
+
+	return nil
+
+}
 func GetPath(c *cli.Context) error {
 	path, _ := os.Getwd()
 	fmt.Println(path)
 	return nil
 }
 
-func main() {
-
-	//dbUser := flag.String("dbuser", "root", "db user name")
-	//dbPassword := flag.String("dbpassword", "password", "password for user name")
-	//dbAddress := flag.String("dbaddress", "127.0.0.1:3306", "db address")
-	//dbName := flag.String("dbname", "dbname", "db name")
-	//daoPkgPath := flag.String("daopkgpath", "dao package path", "dao package path")
-	//daoPkgName := flag.String("daopkgname", "dao package name", "dao package name")
-	//cachePkgName := flag.String("cachepkgname", "cache package name", "cache package name")
-	//tagLabel := flag.String("taglabel", "json", "json or xml")
-	//flag.Parse()
-	//
-	//config.DbUser = *dbUser
-	//config.DbPassword = *dbPassword
-	//config.DbAddress = *dbAddress
-	//config.DbName = *dbName
-	//config.DaoPkgPath = *daoPkgPath
-	//config.DaoPkgName = *daoPkgName
-	//config.CachePkgName = *cachePkgName
-	//config.TagLabel = *tagLabel
-
+//生成整个项目
+func CLI() {
 	app := cli.NewApp()
 	app.Name = "is a Fast and Flexible tool for managing your gin restful API Application"
 	app.Version = "1.0"
@@ -557,5 +553,28 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+func main() {
+
+	//dbUser := flag.String("dbuser", "root", "db user name")
+	//dbPassword := flag.String("dbpassword", "password", "password for user name")
+	//dbAddress := flag.String("dbaddress", "127.0.0.1:3306", "db address")
+	//dbName := flag.String("dbname", "dbname", "db name")
+	//daoPkgPath := flag.String("daopkgpath", "dao package path", "dao package path")
+	//daoPkgName := flag.String("daopkgname", "dao package name", "dao package name")
+	//cachePkgName := flag.String("cachepkgname", "cache package name", "cache package name")
+	//tagLabel := flag.String("taglabel", "json", "json or xml")
+	//flag.Parse()
+	//
+	//config.DbUser = *dbUser
+	//config.DbPassword = *dbPassword
+	//config.DbAddress = *dbAddress
+	//config.DbName = *dbName
+	//config.DaoPkgPath = *daoPkgPath
+	//config.DaoPkgName = *daoPkgName
+	//config.CachePkgName = *cachePkgName
+	//config.TagLabel = *tagLabel
+	config = Configuration{"iris", "/Users/andy/GoLang/src/", "/Users/andy/GoLang/src/github.com/tx991020/geek/", "root:123456@tcp(127.0.0.1:3306)", "api", "seed7", "json"}
+	GenerateSingleTable("task")
 
 }

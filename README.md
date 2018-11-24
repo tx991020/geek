@@ -14,4 +14,5 @@
 2 redis dao cache
 3 redis url cache
 
-#cache,session,casbin,viper,
+
+#cache,session,casbin,viper,go-sh,go-machinery,zap,jwt,k8s,excel,alimsg

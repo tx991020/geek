@@ -1,5 +1,5 @@
 # Create a Gin/iris+Gorm+Redigo Restful API  application
-
+# 一分钟由数据库生成一个后端api application
 
 ```go get github.com/tx991020/geek```
 

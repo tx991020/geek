@@ -11,12 +11,8 @@ type {Table}WithDetail struct {
 }
 
 func Get{Table}WithDetail(id int64) *{Table}WithDetail {
-	item := cache.Get{Table}(id)
-	if item == nil {
-		return &{Table}WithDetail{}
-	}
 	detail := &{Table}WithDetail{
-		{Table}: item,
+		{Table}:  cache.Get{Table}(id),
 	}
 	return detail
 }

@@ -10,9 +10,9 @@
 
 
 ### 三级缓存
-1 memory cache
-2 redis dao cache
-3 redis url cache
+- memory cache
+- redis dao cache
+- redis url cache
 
 - runtime memstats
 - cache

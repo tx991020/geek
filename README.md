@@ -1,4 +1,5 @@
 # Create a Gin/iris+Gorm+Redigo Restful API  Application
+# 可选择生成grpc or http server 代码
 # 一分钟由数据库生成一个后端Restful API  Application
 
 ```go get github.com/tx991020/geek```
@@ -13,11 +14,10 @@
 - memory cache
 - redis dao cache
 - redis url cache
-
+- grpc
 - runtime memstats
 - cache
 - session
-- casbin
 - viper
 - go-sh
 - go-machinery

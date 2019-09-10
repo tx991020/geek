@@ -1,4 +1,4 @@
-# Create a Gin/iris+Gorm+Redigo Restful API  Application
+# Create a Gin/iris/go-micro+Gorm+Redigo Restful API  Application
 # 可选择生成grpc or http server 代码
 # 一分钟由数据库生成一个后端Restful API  Application
 
@@ -18,7 +18,6 @@
 - runtime memstats
 - cache
 - session
-- viper
 - go-sh
 - go-machinery
 - zap
